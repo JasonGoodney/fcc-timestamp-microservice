@@ -32,15 +32,23 @@ app.get("/api/timestamp/", function(req, res, next) {
 app.get(
   "/api/timestamp/:date_string",
   function(req, res, next) {
-    const timestamp = Date.parse(req.params.date_string);
+    const date_string = req.params.date_string;
 
-    if (isNaN(timestamp)) {
+    const isUnixTimestamp = parseInt(date_string) >= 1479600000000;
+    const timestamp = Date.parse(date_string);
+
+    if (isNaN(timestamp) && !isUnixTimestamp) {
       res.json({ error: "Invalid Date" });
       return;
     }
-    const date = new Date(req.params.date_string);
+
+    const date = isUnixTimestamp
+      ? new Date(parseInt(date_string))
+      : new Date(date_string);
+
     req.unix = date.getTime();
     req.utc = date.toUTCString();
+
     next();
   },
   function(req, res) {
@@ -49,6 +57,6 @@ app.get(
 );
 
 // listen for requests :)
-var listener = app.listen(process.env.PORT, function() {
+var listener = app.listen(3001, function() {
   console.log("Your app is listening on port " + listener.address().port);
 });
